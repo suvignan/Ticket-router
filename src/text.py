@@ -15,6 +15,20 @@ def clean_text(text: str) -> str:
     text = re.sub(r"\s+", " ", text)
     return text.strip()
 
+BERT_PLACEHOLDERS = {
+    "redactedinfo": "masked",
+    "redacteddate": "concealed",
+    "redactedamount": "anonymous",
+}
+
+
+def format_for_bert(text: str) -> str:
+    """BERT-only: swap each placeholder for a single-WordPiece word. Apply AFTER clean_text."""
+    for old, new in BERT_PLACEHOLDERS.items():
+        text = text.replace(old, new)
+    return text
+
+
 
 if __name__ == "__main__":
     # Self-check: python src/text.py (silent = all passed)
@@ -23,4 +37,5 @@ if __name__ == "__main__":
     assert clean_text("     ") == ""
     assert clean_text(None) == ""
     assert clean_text("On XX/XX/2023 I paid {$50.00} to XXXX") == "on redacteddate i paid redactedamount to redactedinfo"
+    assert format_for_bert("on redacteddate i paid redactedamount") == "on concealed i paid anonymous"
     print("clean_text: all checks passed")
