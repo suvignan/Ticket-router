@@ -1,0 +1,39 @@
+# Decisions (tunable). All dates are quoted strings; convert with pd.Timestamp in code.
+# clean_text redaction patterns are NOT here: they are frozen model input (src/text.py, checksummed).
+
+ingestion:
+  max_bad_lines: 10             # log the actual count; fail only above this
+  cutoff_date: "2025-06-01"     # rows on or after this are dropped (June 2025 incomplete)
+
+junk_rules:                     # junk rows go to a human, not the model
+  redaction_only_chars: '[X/\s]'
+  attachment_phrase: "see attach"   # case-insensitive
+  attachment_max_len: 30
+
+labels:
+  rename_map:                   # CFPB renamed these on 25 Aug 2023
+    "Credit reporting, credit repair services, or other personal consumer reports": "Credit reporting or other personal consumer reports"
+    "Payday loan, title loan, or personal loan": "Payday loan, title loan, personal loan, or advance loan"
+  card_split:                   # old combined product, split by Sub-product
+    old_product: "Credit card or prepaid card"
+    credit_subproducts:
+      - "General-purpose credit card or charge card"
+      - "Store credit card"
+    prepaid_subproducts:
+      - "General-purpose prepaid card"
+      - "Government benefit card"
+      - "Gift card"
+      - "Payroll card"
+      - "Student prepaid card"
+  # Applied AFTER rename_map, because it matches the NEW credit-reporting name.
+  credit_repair_move:
+    from_label: "Credit reporting or other personal consumer reports"
+    sub_product: "Credit repair services"
+    to_label: "Debt or credit management"
+
+split:                          # half-open [start, end): start <= date < end_exclusive
+  train_end_exclusive: "2025-01-01"
+  val_start: "2025-01-01"
+  val_end_exclusive: "2025-03-01"
+  test_start: "2025-03-01"
+  test_end_exclusive: "2025-06-01"   # = ingestion.cutoff_date

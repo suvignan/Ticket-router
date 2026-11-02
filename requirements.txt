@@ -1,0 +1,22 @@
+# Serving (API needs these; no pandas: serving path is re + numpy + sparse TF-IDF + ONNX)
+numpy==2.5.4
+scipy==1.18.1          # TF-IDF transform returns a SciPy sparse matrix
+scikit-learn==1.9.1    # joblib models only load reliably with the same version
+joblib==1.6.0
+onnxruntime==1.31.1
+tokenizers==0.23.3
+PyYAML==6.0.3
+psutil==7.2.2
+
+# Training only (not in the serving image: TF alone costs ~327 MB)
+pandas==3.0.6
+pyarrow==26.0.0
+tensorflow==2.21.0
+keras==3.15.1
+keras-hub==0.32.0
+kagglehub==1.0.2
+matplotlib==3.11.2
+seaborn==0.13.2
+
+# BERT was trained on Colab, not here. To retrain bert_best.keras, reproduce:
+# tensorflow==2.21.0  keras==3.13.2  keras-hub==0.26.0  pandas==2.2.3

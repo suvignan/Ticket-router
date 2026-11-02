@@ -1,0 +1,43 @@
+# What the raw CFPB data must look like. Facts the code relies on, not decisions.
+
+raw_columns:            # name -> dtype as read from the CSV
+  "Consumer complaint narrative": str
+  "Product": str
+  "Date received": str          # parsed with date_format
+  "Complaint ID": int
+
+label_only_columns:     # used to build labels, NEVER as features
+  - "Sub-product"
+
+date_column: "Date received"
+date_format: "%m/%d/%y"
+id_column: "Complaint ID"     # must be unique
+
+raw_product_values:     # the 14 allowed raw names (3 are pre-Aug-2023 names)
+  - "Checking or savings account"
+  - "Credit card"
+  - "Credit card or prepaid card"
+  - "Credit reporting or other personal consumer reports"
+  - "Credit reporting, credit repair services, or other personal consumer reports"
+  - "Debt collection"
+  - "Debt or credit management"
+  - "Money transfer, virtual currency, or money service"
+  - "Mortgage"
+  - "Payday loan, title loan, or personal loan"
+  - "Payday loan, title loan, personal loan, or advance loan"
+  - "Prepaid card"
+  - "Student loan"
+  - "Vehicle loan or lease"
+
+labels:                 # the 11 final classes, in label_order.json order
+  - "Checking or savings account"
+  - "Credit card"
+  - "Credit reporting or other personal consumer reports"
+  - "Debt collection"
+  - "Debt or credit management"
+  - "Money transfer, virtual currency, or money service"
+  - "Mortgage"
+  - "Payday loan, title loan, personal loan, or advance loan"
+  - "Prepaid card"
+  - "Student loan"
+  - "Vehicle loan or lease"
