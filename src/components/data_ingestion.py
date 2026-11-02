@@ -53,7 +53,7 @@ class DataIngestion:
             # 6. Save (Sub-product kept: LabelBuilder needs it, then drops it)
             cfg.output_parquet.parent.mkdir(parents=True, exist_ok=True)
             df.to_parquet(cfg.output_parquet, index=False, engine="pyarrow")
-            logger.info(f"Saved {len(df):,} rows → {cfg.output_parquet}")
+            logger.info(f"Saved {len(df):,} rows -> {cfg.output_parquet}")
 
             return DataIngestionArtifact(
                 output_parquet=cfg.output_parquet,

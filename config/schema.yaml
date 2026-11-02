@@ -9,7 +9,16 @@ raw_columns:            # name -> dtype as read from the CSV
 label_only_columns:     # used to build labels, NEVER as features
   - "Sub-product"
 
+label_column: "label"
+labeled_columns:        # the Day 4 KEEP list: what LabelBuilder saves
+  - "Complaint ID"
+  - "Date received"
+  - "Consumer complaint narrative"
+  - "Product"
+  - "label"
+
 text_column: "Consumer complaint narrative"
+product_column: "Product"
 date_column: "Date received"
 date_format: "%m/%d/%y"
 id_column: "Complaint ID"     # must be unique

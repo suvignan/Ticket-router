@@ -16,6 +16,8 @@ labels:
     "Payday loan, title loan, or personal loan": "Payday loan, title loan, personal loan, or advance loan"
   card_split:                   # old combined product, split by Sub-product
     old_product: "Credit card or prepaid card"
+    credit_label: "Credit card"
+    prepaid_label: "Prepaid card"
     credit_subproducts:
       - "General-purpose credit card or charge card"
       - "Store credit card"

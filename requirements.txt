@@ -17,6 +17,7 @@ keras-hub==0.32.0
 kagglehub==1.0.2
 matplotlib==3.11.2
 seaborn==0.13.2
+pytest==9.2.0
 
 # BERT was trained on Colab, not here. To retrain bert_best.keras, reproduce:
 # tensorflow==2.21.0  keras==3.13.2  keras-hub==0.26.0  pandas==2.2.3
