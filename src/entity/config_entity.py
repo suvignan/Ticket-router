@@ -18,6 +18,7 @@ class DataIngestionConfig:
     attachment_phrase: str
     attachment_max_len: int
     output_parquet: Path
+    text_column:str
 
 
 def get_ingestion_config(schema_file=constants.SCHEMA_FILE, params_file=constants.PARAMS_FILE) -> DataIngestionConfig:
@@ -28,6 +29,7 @@ def get_ingestion_config(schema_file=constants.SCHEMA_FILE, params_file=constant
         columns=tuple(schema["raw_columns"]) + tuple(schema["label_only_columns"]),
         date_column=schema["date_column"],
         date_format=schema["date_format"],
+        text_column=schema["text_column"],
         max_bad_lines=params["ingestion"]["max_bad_lines"],
         cutoff_date=date.fromisoformat(params["ingestion"]["cutoff_date"]),   # fails early on a bad date
         redaction_only_chars=junk["redaction_only_chars"],
