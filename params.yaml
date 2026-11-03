@@ -39,3 +39,15 @@ split:                          # half-open [start, end): start <= date < end_ex
   val_end_exclusive: "2025-03-01"
   test_start: "2025-03-01"
   test_end_exclusive: "2025-06-01"   # = ingestion.cutoff_date
+  seed: 42
+
+
+model_trainer:                  # = notebook 05 Config B (B-none), so it's comparable with the baseline
+  tfidf:
+    min_df: 5
+    ngram_range: [1, 1]         # YAML has no tuples: the builder converts it
+    sublinear_tf: true
+  logreg:
+    max_iter: 1000
+    C: 1.0
+    class_weight: null          # null in YAML = None in Python

@@ -28,3 +28,29 @@ class LabelBuilderArtifact:
     n_card_to_prepaid: int
     n_credit_repair_moved: int
     label_counts: dict          # label -> count (a record of the result, read-only by convention)
+
+@dataclass(frozen=True)
+class DataSplitterArtifact:
+    train_parquet: Path
+    val_parquet: Path
+    test_parquet: Path
+    test_dedup_parquet: Path
+    n_train: int
+    n_val: int
+    n_test: int
+    n_test_dedup: int
+    n_train_removed_dups: int
+    n_ties: int
+    n_test_seen_in_train: int
+    
+@dataclass(frozen=True)
+class ModelTrainerArtifact:
+    tfidf_path: Path
+    logreg_path: Path
+    label_order_path: Path
+    tfidf_sha256: str
+    logreg_sha256: str
+    label_order_sha256: str
+    vocab_size: int
+    n_train: int
+    train_seconds: float

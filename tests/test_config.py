@@ -22,7 +22,9 @@ def test_config():
     assert {lab["credit_repair_move"]["from_label"], lab["credit_repair_move"]["to_label"]} <= set(labels)
     assert "Sub-product" in schema["label_only_columns"]
     split = params["split"]
-    assert all(isinstance(v, str) for v in split.values())   # dates stay strings
+    date_keys = [k for k in split if "start" in k or "end" in k]
+    assert len(date_keys) == 5                                   # guard: the filter really found the dates
+    assert all(isinstance(split[k], str) for k in date_keys)     # dates stay strings
     assert split["val_start"] == split["train_end_exclusive"]  # no gap, no overlap
     assert split["test_start"] == split["val_end_exclusive"]
     assert split["test_end_exclusive"] == params["ingestion"]["cutoff_date"]

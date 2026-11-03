@@ -113,3 +113,72 @@ def get_label_builder_config(input_parquet: Path, schema_file=constants.SCHEMA_F
         labels=tuple(schema["labels"]),
         keep_columns=tuple(schema["labeled_columns"]),
     )
+
+
+
+@dataclass(frozen=True)
+class DataSplitterConfig:
+    input_parquet: Path
+    output_dir: Path
+    id_column: str
+    date_column: str
+    text_column: str
+    label_column: str
+    train_end: date              # all *_end are EXCLUSIVE (half-open)
+    val_start: date
+    val_end: date
+    test_start: date
+    test_end: date
+    seed: int
+
+
+def get_splitter_config(input_parquet: Path, schema_file=constants.SCHEMA_FILE, params_file=constants.PARAMS_FILE) -> DataSplitterConfig:
+    schema, params = read_yaml(schema_file), read_yaml(params_file)
+    s = params["split"]
+    d = date.fromisoformat                       # short name, used 5 times
+    return DataSplitterConfig(
+        input_parquet=input_parquet,
+        output_dir=constants.SPLIT_DIR,
+        id_column=schema["id_column"],
+        date_column=schema["date_column"],
+        text_column=schema["text_column"],
+        label_column=schema["label_column"],
+        train_end=d(s["train_end_exclusive"]),
+        val_start=d(s["val_start"]),
+        val_end=d(s["val_end_exclusive"]),
+        test_start=d(s["test_start"]),
+        test_end=d(s["test_end_exclusive"]),
+        seed=s["seed"],
+    )
+
+@dataclass(frozen=True)
+class ModelTrainerConfig:
+    train_parquet: Path
+    output_dir: Path
+    text_column: str
+    label_column: str
+    min_df: int
+    ngram_range: tuple[int, int]
+    sublinear_tf: bool
+    max_iter: int
+    C: float
+    class_weight: str | None
+    labels: tuple[str, ...]          # the 11, in label_order.json order
+
+
+def get_trainer_config(train_parquet: Path, schema_file=constants.SCHEMA_FILE, params_file=constants.PARAMS_FILE) -> ModelTrainerConfig:
+    schema, params = read_yaml(schema_file), read_yaml(params_file)
+    tf, lr = params["model_trainer"]["tfidf"], params["model_trainer"]["logreg"]
+    return ModelTrainerConfig(
+        train_parquet=train_parquet,
+        output_dir=constants.MODEL_DIR,
+        text_column=schema["text_column"],
+        label_column=schema["label_column"],
+        min_df=tf["min_df"],
+        ngram_range=tuple(tf["ngram_range"]),       # list [1, 1] -> tuple (1, 1): scikit-learn wants a tuple
+        sublinear_tf=tf["sublinear_tf"],
+        max_iter=lr["max_iter"],
+        C=lr["C"],
+        class_weight=lr["class_weight"],
+        labels=tuple(schema["labels"]),
+    )
