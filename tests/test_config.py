@@ -16,8 +16,8 @@ def test_config():
     assert len(labels) == 11
     assert labels == json.load(open(ROOT / "models/label_order.json"))
     assert len(raw) == 14 and len(set(raw)) == 14
-    assert all(k in raw for k in lab["rename_map"])
-    assert all(v in labels for v in lab["rename_map"].values())
+    assert all(r["from"] in raw for r in lab["rename_map"])
+    assert all(r["to"] in labels for r in lab["rename_map"])
     assert lab["card_split"]["old_product"] in raw
     assert {lab["credit_repair_move"]["from_label"], lab["credit_repair_move"]["to_label"]} <= set(labels)
     assert "Sub-product" in schema["label_only_columns"]

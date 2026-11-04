@@ -1,0 +1,52 @@
+{
+  "gate_passed": true,
+  "reasons": [],
+  "challenger": {
+    "macro_f1": 0.6970518635144278,
+    "accuracy": 0.9160785635537579,
+    "per_class": {
+      "Checking or savings account": 0.8609424083769633,
+      "Credit card": 0.6681252563927252,
+      "Credit reporting or other personal consumer reports": 0.9559569261415054,
+      "Debt collection": 0.6108394738654362,
+      "Debt or credit management": 0.289532293986637,
+      "Money transfer, virtual currency, or money service": 0.9524989162073451,
+      "Mortgage": 0.8580593424218124,
+      "Payday loan, title loan, personal loan, or advance loan": 0.49902534113060426,
+      "Prepaid card": 0.5513361462728551,
+      "Student loan": 0.7877947295423023,
+      "Vehicle loan or lease": 0.6334596643205198
+    }
+  },
+  "champion": {
+    "macro_f1": 0.6955742954403097,
+    "accuracy": 0.9157134129642504,
+    "per_class": {
+      "Checking or savings account": 0.8601057979364165,
+      "Credit card": 0.6660313138189244,
+      "Credit reporting or other personal consumer reports": 0.9556828524010922,
+      "Debt collection": 0.6102302495519095,
+      "Debt or credit management": 0.28442437923250563,
+      "Money transfer, virtual currency, or money service": 0.952221602528351,
+      "Mortgage": 0.8602409638554217,
+      "Payday loan, title loan, personal loan, or advance loan": 0.49705304518664045,
+      "Prepaid card": 0.5451977401129944,
+      "Student loan": 0.787066974595843,
+      "Vehicle loan or lease": 0.6330623306233062
+    }
+  },
+  "macro_f1_diff": 0.001478,
+  "per_class_f1_diff": {
+    "Checking or savings account": 0.000837,
+    "Credit card": 0.002094,
+    "Credit reporting or other personal consumer reports": 0.000274,
+    "Debt collection": 0.000609,
+    "Debt or credit management": 0.005108,
+    "Money transfer, virtual currency, or money service": 0.000277,
+    "Mortgage": -0.002182,
+    "Payday loan, title loan, personal loan, or advance loan": 0.001972,
+    "Prepaid card": 0.006138,
+    "Student loan": 0.000728,
+    "Vehicle loan or lease": 0.000397
+  }
+}

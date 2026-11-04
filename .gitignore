@@ -1,9 +1,15 @@
-﻿nlp/
+nlp/
 .ipynb_checkpoints/
 __pycache__/
-data/
+# big files ignored, but DVC's small pointer files (*.dvc) are committed
+data/**
+!data/**/
+!data/**/*.dvc
+# metrics (cache: false) are committed to git
+!data/processed/*_report.json
 
-models/
+models/**
+!models/*.dvc
 predictions/
 
 logs/

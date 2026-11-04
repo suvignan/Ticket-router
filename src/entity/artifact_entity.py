@@ -54,3 +54,14 @@ class ModelTrainerArtifact:
     vocab_size: int
     n_train: int
     train_seconds: float
+
+
+@dataclass(frozen=True)
+class ModelEvaluationArtifact:
+    gate_passed: bool
+    reasons: tuple[str, ...]                     # empty = passed
+    challenger_macro_f1: float
+    champion_macro_f1: float | None              # None = no champion
+    macro_f1_diff: float | None
+    per_class_f1_diff: dict[str, float] | None   # class -> challenger minus champion
+    report_path: Path

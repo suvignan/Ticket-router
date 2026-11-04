@@ -11,9 +11,12 @@ junk_rules:                     # junk rows go to a human, not the model
   attachment_max_len: 30
 
 labels:
-  rename_map:                   # CFPB renamed these on 25 Aug 2023
-    "Credit reporting, credit repair services, or other personal consumer reports": "Credit reporting or other personal consumer reports"
-    "Payday loan, title loan, or personal loan": "Payday loan, title loan, personal loan, or advance loan"
+  rename_map:                   # CFPB renamed these on 25 Aug 2023. A list of {from, to}, NOT a dict:
+                                # DVC line-wraps long dict KEYS in dvc.lock and corrupts it (values wrap safely)
+    - from: "Credit reporting, credit repair services, or other personal consumer reports"
+      to: "Credit reporting or other personal consumer reports"
+    - from: "Payday loan, title loan, or personal loan"
+      to: "Payday loan, title loan, personal loan, or advance loan"
   card_split:                   # old combined product, split by Sub-product
     old_product: "Credit card or prepaid card"
     credit_label: "Credit card"
@@ -51,3 +54,24 @@ model_trainer:                  # = notebook 05 Config B (B-none), so it's compa
     max_iter: 1000
     C: 1.0
     class_weight: null          # null in YAML = None in Python
+
+model_evaluation:               # the gate: challenger (new pipeline model) vs champion (deployed), on VALIDATION (test stays the Day 13 one-time report)
+  min_macro_f1: 0.65            # absolute floor: champion val is 0.6956, so 0.65 is ~0.045 below (30x the 0.0015 noise); a broken run (wrong labels, wrong clean_text, majority-class ~0.07) lands far under it
+  max_macro_f1_drop: 0.005      # challenger >= champion - 0.005: >3x the measured notebook-vs-pipeline noise (0.0015), still catches a real regression
+  max_small_class_drop: 0.02    # same rule as Day 12: no small class may lose more than 0.02 F1 vs the champion
+  small_classes:                # the same 6 as Day 12, fixed in advance
+    - Debt or credit management
+    - Prepaid card
+    - Payday loan, title loan, personal loan, or advance loan
+    - Vehicle loan or lease
+    - Student loan
+    - Mortgage
+  champion:                     # null on a brand-new deployment -> only the floor applies
+    tfidf: models/tfidf_b.joblib
+    tfidf_sha256: 29a86e481ab54be3598528ee560fb35aa062621d22b482465194ef9cd77f04af
+    logreg: models/logreg_b.joblib
+    logreg_sha256: 240d83fddbbef138e7d66165728c136a9bd10324add70b1cf739359c60240a1a   # gate refuses to run on a mismatch: never compare against the wrong file
+    label_order: models/label_order.json
+    label_order_sha256: 8e0f2f852f3dfebfd2b853471d07f51fa264ebbfc670d940943c78d27b89db34
+    recorded_val_macro_f1: 0.695574   # measured 2026-11-04 on data/splits/val.parquet; the canary
+  max_champion_drift: 0.0001    # frozen champion's score must not move; more = "environment changed" (data / clean_text / library)

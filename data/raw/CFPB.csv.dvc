@@ -1,0 +1,5 @@
+outs:
+- md5: 690978aa8b253027a01c5994a2c70b5e
+  size: 1876440324
+  hash: md5
+  path: CFPB.csv

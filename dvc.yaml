@@ -1,0 +1,112 @@
+# Each stage = its own process; stages talk ONLY through files. Run with the venv active: `dvc repro`
+# Shared deps on every stage: src/entity (config builders), src/constants (paths), src/utils (save_artifact).
+# Not deps: src/logger, src/exception (they can't change an output).
+stages:
+  ingest:
+    cmd: python -m src.pipeline.stages.stage_01_ingest
+    deps:
+      - data/raw/CFPB.csv
+      - src/pipeline/stages/stage_01_ingest.py
+      - src/components/data_ingestion.py
+      - src/entity
+      - src/constants
+      - src/utils
+      - config/schema.yaml
+    params:
+      - ingestion
+      - junk_rules
+    outs:
+      - data/interim/ingested.parquet
+      - artifacts/ingestion.json
+
+  validate:
+    cmd: python -m src.pipeline.stages.stage_02_validate
+    deps:
+      - data/interim/ingested.parquet
+      - src/pipeline/stages/stage_02_validate.py
+      - src/components/data_validation.py
+      - src/entity
+      - src/constants
+      - src/utils
+      - config/schema.yaml
+    outs:
+      - artifacts/validation.json
+    metrics:
+      - data/processed/validation_report.json:
+          cache: false
+
+  labels:
+    cmd: python -m src.pipeline.stages.stage_03_labels
+    deps:
+      - data/interim/ingested.parquet
+      - artifacts/validation.json        # forces labels to wait for the quality gate
+      - src/pipeline/stages/stage_03_labels.py
+      - src/components/label_builder.py
+      - src/entity
+      - src/constants
+      - src/utils
+      - config/schema.yaml
+    params:
+      - labels
+    outs:
+      - data/interim/labeled.parquet
+      - artifacts/labels.json
+
+  split:
+    cmd: python -m src.pipeline.stages.stage_04_split
+    deps:
+      - data/interim/labeled.parquet
+      - src/pipeline/stages/stage_04_split.py
+      - src/components/data_splitter.py
+      - src/entity
+      - src/constants
+      - src/utils
+      - config/schema.yaml
+    params:
+      - split
+    outs:
+      - data/splits/train.parquet
+      - data/splits/val.parquet
+      - data/splits/test.parquet
+      - data/splits/test_dedup.parquet
+      - artifacts/split.json
+
+  train:
+    cmd: python -m src.pipeline.stages.stage_05_train
+    deps:
+      - data/splits/train.parquet
+      - src/pipeline/stages/stage_05_train.py
+      - src/components/model_trainer.py
+      - src/text.py                       # change the cleaning -> retrain
+      - src/entity
+      - src/constants
+      - src/utils
+      - config/schema.yaml
+    params:
+      - model_trainer
+    outs:
+      - artifacts/model
+      - artifacts/train.json
+
+  evaluate:
+    cmd: python -m src.pipeline.stages.stage_06_evaluate
+    deps:
+      - data/splits/val.parquet
+      - artifacts/model
+      - models/tfidf_b.joblib             # the champion (dvc add-ed, so its version is recorded)
+      - models/logreg_b.joblib
+      - models/label_order.json
+      - src/pipeline/stages/stage_06_evaluate.py
+      - src/components/model_evaluation.py
+      - src/text.py                       # change the cleaning -> re-evaluate (and the canary fires)
+      - src/entity
+      - src/constants
+      - src/utils
+      - config/schema.yaml
+    params:
+      - model_evaluation
+    outs:
+      - artifacts/evaluation.json
+    metrics:
+      - data/processed/evaluation_report.json:
+          cache: false

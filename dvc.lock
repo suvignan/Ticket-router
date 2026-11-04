@@ -1,0 +1,384 @@
+schema: '2.0'
+stages:
+  ingest:
+    cmd: python -m src.pipeline.stages.stage_01_ingest
+    deps:
+    - path: config/schema.yaml
+      hash: md5
+      md5: fccdba3db4dbdab8eab574ff3cafa8e6
+      size: 1776
+    - path: data/raw/CFPB.csv
+      hash: md5
+      md5: 690978aa8b253027a01c5994a2c70b5e
+      size: 1876440324
+    - path: src/components/data_ingestion.py
+      hash: md5
+      md5: d1720097a73b1c437894ac10b0edd705
+      size: 3584
+    - path: src/constants
+      hash: md5
+      md5: 38ff2560e8eb00586db22ff2b1372e8b.dir
+      size: 1913
+      nfiles: 2
+    - path: src/entity
+      hash: md5
+      md5: 0b5333043a213ec0787c5b4cd8aea6b5.dir
+      size: 25047
+      nfiles: 6
+    - path: src/pipeline/stages/stage_01_ingest.py
+      hash: md5
+      md5: 87aed50de1e9a6eac50d8994a0f8422e
+      size: 500
+    - path: src/utils
+      hash: md5
+      md5: 350fd0cb7cdd774f10cd6b121d8a92f6.dir
+      size: 4203
+      nfiles: 2
+    params:
+      params.yaml:
+        ingestion:
+          max_bad_lines: 10
+          cutoff_date: '2025-06-01'
+        junk_rules:
+          redaction_only_chars: '[X/\s]'
+          attachment_phrase: see attach
+          attachment_max_len: 30
+    outs:
+    - path: artifacts/ingestion.json
+      hash: md5
+      md5: e7d359712bc1b73365ab4ad4deb7deb7
+      size: 356
+    - path: data/interim/ingested.parquet
+      hash: md5
+      md5: 3cb486cafed7eeca842c8f182d1aa3a1
+      size: 400269449
+  validate:
+    cmd: python -m src.pipeline.stages.stage_02_validate
+    deps:
+    - path: config/schema.yaml
+      hash: md5
+      md5: fccdba3db4dbdab8eab574ff3cafa8e6
+      size: 1776
+    - path: data/interim/ingested.parquet
+      hash: md5
+      md5: 3cb486cafed7eeca842c8f182d1aa3a1
+      size: 400269449
+    - path: src/components/data_validation.py
+      hash: md5
+      md5: a7d55a893cd338e8af10511a71ff4ff4
+      size: 4401
+    - path: src/constants
+      hash: md5
+      md5: 38ff2560e8eb00586db22ff2b1372e8b.dir
+      size: 1913
+      nfiles: 2
+    - path: src/entity
+      hash: md5
+      md5: 0b5333043a213ec0787c5b4cd8aea6b5.dir
+      size: 25047
+      nfiles: 6
+    - path: src/pipeline/stages/stage_02_validate.py
+      hash: md5
+      md5: fdafb487eedecb81549e8faedcefa28e
+      size: 542
+    - path: src/utils
+      hash: md5
+      md5: 350fd0cb7cdd774f10cd6b121d8a92f6.dir
+      size: 4203
+      nfiles: 2
+    outs:
+    - path: artifacts/validation.json
+      hash: md5
+      md5: c235b43890c6b55489fe8eb7d2495a3a
+      size: 363
+    - path: data/processed/validation_report.json
+      hash: md5
+      md5: c728901863ec378cb307944a4794b645
+      size: 1047
+  labels:
+    cmd: python -m src.pipeline.stages.stage_03_labels
+    deps:
+    - path: artifacts/validation.json
+      hash: md5
+      md5: c235b43890c6b55489fe8eb7d2495a3a
+      size: 363
+    - path: config/schema.yaml
+      hash: md5
+      md5: fccdba3db4dbdab8eab574ff3cafa8e6
+      size: 1776
+    - path: data/interim/ingested.parquet
+      hash: md5
+      md5: 3cb486cafed7eeca842c8f182d1aa3a1
+      size: 400269449
+    - path: src/components/label_builder.py
+      hash: md5
+      md5: afb11c4e1ed6ae43601772968ce6b46d
+      size: 3703
+    - path: src/constants
+      hash: md5
+      md5: 38ff2560e8eb00586db22ff2b1372e8b.dir
+      size: 1913
+      nfiles: 2
+    - path: src/entity
+      hash: md5
+      md5: 0b5333043a213ec0787c5b4cd8aea6b5.dir
+      size: 25047
+      nfiles: 6
+    - path: src/pipeline/stages/stage_03_labels.py
+      hash: md5
+      md5: 349159f7761259b8aa264bf72dcd78c6
+      size: 572
+    - path: src/utils
+      hash: md5
+      md5: 350fd0cb7cdd774f10cd6b121d8a92f6.dir
+      size: 4203
+      nfiles: 2
+    params:
+      params.yaml:
+        labels:
+          rename_map:
+          - from: Credit reporting, credit repair services, or other personal 
+              consumer reports
+            to: Credit reporting or other personal consumer reports
+          - from: Payday loan, title loan, or personal loan
+            to: Payday loan, title loan, personal loan, or advance loan
+          card_split:
+            old_product: Credit card or prepaid card
+            credit_label: Credit card
+            prepaid_label: Prepaid card
+            credit_subproducts:
+            - General-purpose credit card or charge card
+            - Store credit card
+            prepaid_subproducts:
+            - General-purpose prepaid card
+            - Government benefit card
+            - Gift card
+            - Payroll card
+            - Student prepaid card
+          credit_repair_move:
+            from_label: Credit reporting or other personal consumer reports
+            sub_product: Credit repair services
+            to_label: Debt or credit management
+    outs:
+    - path: artifacts/labels.json
+      hash: md5
+      md5: 4847c9cbfe2113576d432f470a025133
+      size: 783
+    - path: data/interim/labeled.parquet
+      hash: md5
+      md5: f4a5de6f91d7b2a9e345cd6f423e3b0b
+      size: 400152787
+  split:
+    cmd: python -m src.pipeline.stages.stage_04_split
+    deps:
+    - path: config/schema.yaml
+      hash: md5
+      md5: fccdba3db4dbdab8eab574ff3cafa8e6
+      size: 1776
+    - path: data/interim/labeled.parquet
+      hash: md5
+      md5: f4a5de6f91d7b2a9e345cd6f423e3b0b
+      size: 400152787
+    - path: src/components/data_splitter.py
+      hash: md5
+      md5: 8775023680773aec09d1f41e4573e996
+      size: 4193
+    - path: src/constants
+      hash: md5
+      md5: 38ff2560e8eb00586db22ff2b1372e8b.dir
+      size: 1913
+      nfiles: 2
+    - path: src/entity
+      hash: md5
+      md5: 0b5333043a213ec0787c5b4cd8aea6b5.dir
+      size: 25047
+      nfiles: 6
+    - path: src/pipeline/stages/stage_04_split.py
+      hash: md5
+      md5: cb32a55166eb0b6454f9c0203182fe61
+      size: 519
+    - path: src/utils
+      hash: md5
+      md5: 350fd0cb7cdd774f10cd6b121d8a92f6.dir
+      size: 4203
+      nfiles: 2
+    params:
+      params.yaml:
+        split:
+          train_end_exclusive: '2025-01-01'
+          val_start: '2025-01-01'
+          val_end_exclusive: '2025-03-01'
+          test_start: '2025-03-01'
+          test_end_exclusive: '2025-06-01'
+          seed: 42
+    outs:
+    - path: artifacts/split.json
+      hash: md5
+      md5: 6b50fe63d6b56661e13acc570441dc01
+      size: 807
+    - path: data/splits/test.parquet
+      hash: md5
+      md5: 232e7c327a8d9e171094a143d5c67d2a
+      size: 78120442
+    - path: data/splits/test_dedup.parquet
+      hash: md5
+      md5: 0a27583e67965dbe4975aad7927e3ed3
+      size: 50911205
+    - path: data/splits/train.parquet
+      hash: md5
+      md5: 77f8d95a726172d7a5426ea2cb7523b7
+      size: 213576046
+    - path: data/splits/val.parquet
+      hash: md5
+      md5: 36d2df9345d29bd96dca4813e94e6001
+      size: 59236284
+  train:
+    cmd: python -m src.pipeline.stages.stage_05_train
+    deps:
+    - path: config/schema.yaml
+      hash: md5
+      md5: fccdba3db4dbdab8eab574ff3cafa8e6
+      size: 1776
+    - path: data/splits/train.parquet
+      hash: md5
+      md5: 77f8d95a726172d7a5426ea2cb7523b7
+      size: 213576046
+    - path: src/components/model_trainer.py
+      hash: md5
+      md5: ea1d46129b93dde77e6c27821e58ee19
+      size: 3090
+    - path: src/constants
+      hash: md5
+      md5: 38ff2560e8eb00586db22ff2b1372e8b.dir
+      size: 1913
+      nfiles: 2
+    - path: src/entity
+      hash: md5
+      md5: 0b5333043a213ec0787c5b4cd8aea6b5.dir
+      size: 25047
+      nfiles: 6
+    - path: src/pipeline/stages/stage_05_train.py
+      hash: md5
+      md5: 37133a5c827e3997337667e5725c88cd
+      size: 522
+    - path: src/text.py
+      hash: md5
+      md5: 751cb16ef23b64a1326fd720e3c2d438
+      size: 1608
+    - path: src/utils
+      hash: md5
+      md5: 350fd0cb7cdd774f10cd6b121d8a92f6.dir
+      size: 4203
+      nfiles: 2
+    params:
+      params.yaml:
+        model_trainer:
+          tfidf:
+            min_df: 5
+            ngram_range:
+            - 1
+            - 1
+            sublinear_tf: true
+          logreg:
+            max_iter: 1000
+            C: 1.0
+            class_weight:
+    outs:
+    - path: artifacts/model
+      hash: md5
+      md5: ae78c55ebc37f56bdcb82904d7941eb3.dir
+      size: 2711324
+      nfiles: 3
+    - path: artifacts/train.json
+      hash: md5
+      md5: c83f1eb973d3112c40372c94b992ca70
+      size: 825
+  evaluate:
+    cmd: python -m src.pipeline.stages.stage_06_evaluate
+    deps:
+    - path: artifacts/model
+      hash: md5
+      md5: ae78c55ebc37f56bdcb82904d7941eb3.dir
+      size: 2711324
+      nfiles: 3
+    - path: config/schema.yaml
+      hash: md5
+      md5: fccdba3db4dbdab8eab574ff3cafa8e6
+      size: 1776
+    - path: data/splits/val.parquet
+      hash: md5
+      md5: 36d2df9345d29bd96dca4813e94e6001
+      size: 59236284
+    - path: models/label_order.json
+      hash: md5
+      md5: cce860e4cbac5683f663c4e44efc3088
+      size: 367
+    - path: models/logreg_b.joblib
+      hash: md5
+      md5: 2aedb4ff470bf113c9c650f732a4a3b9
+      size: 2178447
+    - path: models/tfidf_b.joblib
+      hash: md5
+      md5: e814abe7b37336d66f2c0040b07cf0ac
+      size: 532510
+    - path: src/components/model_evaluation.py
+      hash: md5
+      md5: dff6d1ed6398262a1f0cd32512a53306
+      size: 5436
+    - path: src/constants
+      hash: md5
+      md5: 38ff2560e8eb00586db22ff2b1372e8b.dir
+      size: 1913
+      nfiles: 2
+    - path: src/entity
+      hash: md5
+      md5: 0b5333043a213ec0787c5b4cd8aea6b5.dir
+      size: 25047
+      nfiles: 6
+    - path: src/pipeline/stages/stage_06_evaluate.py
+      hash: md5
+      md5: acd7a310d433adae16e6b5407bdb9a27
+      size: 631
+    - path: src/text.py
+      hash: md5
+      md5: 751cb16ef23b64a1326fd720e3c2d438
+      size: 1608
+    - path: src/utils
+      hash: md5
+      md5: 350fd0cb7cdd774f10cd6b121d8a92f6.dir
+      size: 4203
+      nfiles: 2
+    params:
+      params.yaml:
+        model_evaluation:
+          min_macro_f1: 0.65
+          max_macro_f1_drop: 0.005
+          max_small_class_drop: 0.02
+          small_classes:
+          - Debt or credit management
+          - Prepaid card
+          - Payday loan, title loan, personal loan, or advance loan
+          - Vehicle loan or lease
+          - Student loan
+          - Mortgage
+          champion:
+            tfidf: models/tfidf_b.joblib
+            tfidf_sha256: 
+              29a86e481ab54be3598528ee560fb35aa062621d22b482465194ef9cd77f04af
+            logreg: models/logreg_b.joblib
+            logreg_sha256: 
+              240d83fddbbef138e7d66165728c136a9bd10324add70b1cf739359c60240a1a
+            label_order: models/label_order.json
+            label_order_sha256: 
+              8e0f2f852f3dfebfd2b853471d07f51fa264ebbfc670d940943c78d27b89db34
+            recorded_val_macro_f1: 0.695574
+          max_champion_drift: 0.0001
+    outs:
+    - path: artifacts/evaluation.json
+      hash: md5
+      md5: 3540d358718118b1eb92ca43aff52aa4
+      size: 859
+    - path: data/processed/evaluation_report.json
+      hash: md5
+      md5: ef7187432840274a6ab0cc7ca34551b5
+      size: 2107

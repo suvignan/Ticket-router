@@ -12,3 +12,5 @@ VALIDATION_REPORT = ROOT / "data" / "processed" / "validation_report.json"
 LABELED_PARQUET = ROOT / "data" / "interim" / "labeled.parquet"
 SPLIT_DIR = ROOT / "data" / "splits"          # NOT "processed": the notebook's files live there
 MODEL_DIR = ROOT / "artifacts" / "model"     # NOT models/: the frozen Day 13 files live there
+ARTIFACT_DIR = ROOT / "artifacts"            # one <stage>.json per DVC stage
+EVALUATION_REPORT = ROOT / "data" / "processed" / "evaluation_report.json"

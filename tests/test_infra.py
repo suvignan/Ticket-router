@@ -31,3 +31,13 @@ if __name__ == "__main__":
     test_logger_writes_file()
     test_exception_has_type_file_and_line()
     print("infra: all checks passed")
+
+
+def test_artifact_json_roundtrip(tmp_path):
+    from src.entity.artifact_entity import ModelEvaluationArtifact
+    from src.utils import load_artifact, save_artifact
+    art = ModelEvaluationArtifact(gate_passed=False, reasons=("Prepaid card dropped 0.031 (> 0.02)",),
+                                  challenger_macro_f1=0.69, champion_macro_f1=0.70, macro_f1_diff=-0.01,
+                                  per_class_f1_diff={"Prepaid card": -0.031}, report_path=tmp_path / "r.json")
+    save_artifact(art, tmp_path / "a.json")
+    assert load_artifact(ModelEvaluationArtifact, tmp_path / "a.json") == art     # Path and tuple come back typed

@@ -1,0 +1,58 @@
+{
+  "validation_status": true,
+  "checks": {
+    "columns": {
+      "passed": true,
+      "details": {
+        "missing": [],
+        "extra": []
+      }
+    },
+    "dtypes": {
+      "passed": true,
+      "details": {
+        "wrong_dtypes": {}
+      }
+    },
+    "unique_ids": {
+      "passed": true,
+      "details": {
+        "n_duplicates": 0,
+        "examples": []
+      }
+    },
+    "products": {
+      "passed": true,
+      "details": {
+        "unexpected": [],
+        "n_missing": 0
+      }
+    },
+    "dates": {
+      "passed": true,
+      "details": {
+        "n_on_or_after_cutoff": 0,
+        "n_with_time_part": 0,
+        "max_date": "2025-05-31"
+      }
+    },
+    "no_empty_text": {
+      "passed": true,
+      "details": {
+        "n_empty": 0
+      }
+    },
+    "subproduct_present": {
+      "passed": true,
+      "details": {
+        "n_missing": 0
+      }
+    },
+    "not_empty": {
+      "passed": true,
+      "details": {
+        "n_rows": 855988
+      }
+    }
+  }
+}

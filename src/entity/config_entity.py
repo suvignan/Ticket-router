@@ -101,7 +101,7 @@ def get_label_builder_config(input_parquet: Path, schema_file=constants.SCHEMA_F
         product_column=schema["product_column"],
         subproduct_column=schema["label_only_columns"][0],
         label_column=schema["label_column"],
-        rename_map=tuple(lab["rename_map"].items()),        # dict -> (old, new) pairs
+        rename_map=tuple((r["from"], r["to"]) for r in lab["rename_map"]),   # [{from, to}] -> (old, new) pairs
         old_card_product=card["old_product"],
         credit_label=card["credit_label"],
         prepaid_label=card["prepaid_label"],
@@ -181,4 +181,63 @@ def get_trainer_config(train_parquet: Path, schema_file=constants.SCHEMA_FILE, p
         C=lr["C"],
         class_weight=lr["class_weight"],
         labels=tuple(schema["labels"]),
+    )
+
+
+@dataclass(frozen=True)
+class ChampionConfig:
+    tfidf_path: Path
+    tfidf_sha256: str
+    logreg_path: Path
+    logreg_sha256: str
+    label_order_path: Path
+    label_order_sha256: str
+    recorded_val_macro_f1: float
+
+
+@dataclass(frozen=True)
+class ModelEvaluationConfig:
+    val_parquet: Path
+    text_column: str
+    label_column: str
+    challenger_tfidf: Path            # from the trainer artifact (the baton)
+    challenger_logreg: Path
+    champion: ChampionConfig | None   # None = brand-new deployment -> floor only
+    labels: tuple[str, ...]
+    small_classes: tuple[str, ...]
+    min_macro_f1: float
+    max_macro_f1_drop: float
+    max_small_class_drop: float
+    max_champion_drift: float
+    report_path: Path
+
+
+def get_evaluation_config(val_parquet: Path, challenger_tfidf: Path, challenger_logreg: Path,
+                          schema_file=constants.SCHEMA_FILE, params_file=constants.PARAMS_FILE) -> ModelEvaluationConfig:
+    schema, params = read_yaml(schema_file), read_yaml(params_file)
+    ev = params["model_evaluation"]
+    ch = ev["champion"]
+    champion = None if ch is None else ChampionConfig(
+        tfidf_path=constants.ROOT / ch["tfidf"],          # yaml has a relative path -> make it absolute
+        tfidf_sha256=ch["tfidf_sha256"],
+        logreg_path=constants.ROOT / ch["logreg"],
+        logreg_sha256=ch["logreg_sha256"],
+        label_order_path=constants.ROOT / ch["label_order"],
+        label_order_sha256=ch["label_order_sha256"],
+        recorded_val_macro_f1=ch["recorded_val_macro_f1"],
+    )
+    return ModelEvaluationConfig(
+        val_parquet=val_parquet,
+        text_column=schema["text_column"],
+        label_column=schema["label_column"],
+        challenger_tfidf=challenger_tfidf,
+        challenger_logreg=challenger_logreg,
+        champion=champion,
+        labels=tuple(schema["labels"]),
+        small_classes=tuple(ev["small_classes"]),          # YAML list -> ? (frozen!)
+        min_macro_f1=ev["min_macro_f1"],
+        max_macro_f1_drop=ev["max_macro_f1_drop"],
+        max_small_class_drop=ev["max_small_class_drop"],
+        max_champion_drift=ev["max_champion_drift"],
+        report_path=constants.EVALUATION_REPORT,
     )
