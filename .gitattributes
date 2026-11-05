@@ -1,0 +1,2 @@
+# Fixtures are compared by exact bytes (sha256): never let git convert their line endings (LF <-> CRLF)
+tests/fixtures/** -text

@@ -1,0 +1,9 @@
+# Serving: the Docker image on Render. No pandas: serving path is re + numpy + sparse TF-IDF + ONNX
+# (fastapi + uvicorn come on Day 19)
+numpy==2.5.4
+scipy==1.18.1          # TF-IDF transform returns a SciPy sparse matrix
+scikit-learn==1.9.1    # joblib models only load reliably with the same version
+joblib==1.6.0
+onnxruntime==1.31.1
+tokenizers==0.23.3
+PyYAML==6.0.3

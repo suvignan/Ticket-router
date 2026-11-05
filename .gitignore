@@ -12,6 +12,7 @@ data/**
 models/**
 !models/**/
 !models/*.dvc
+!models/manifest.json
 predictions/
 
 logs/

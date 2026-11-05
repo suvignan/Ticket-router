@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-30",
+  "checksums": {
+    "models/tfidf_b.joblib": "29a86e481ab54be3598528ee560fb35aa062621d22b482465194ef9cd77f04af",
+    "models/logreg_b.joblib": "240d83fddbbef138e7d66165728c136a9bd10324add70b1cf739359c60240a1a",
+    "models/tfidf_b350.joblib": "8fd0de4babfbbe01904fa4981c0211fedae0a1a602019bcd5859955c8cc486a4",
+    "models/logreg_b350.joblib": "a85d5c0e41579960ec23a5fdda4889ad7ea83de81a8aeb1cebdd6afe11ea55f5",
+    "models/lstm_best.keras": "f39fb0b6f7b33d7e91d0b4afc6c3900e02520aef8172a2403246c9c5dbca9732",
+    "models/lstm_vocab.json": "7d96f49aa8d793588c45e0b477bcdda50a0ce25bf794ab3d54f2a9cf5b3f50d4",
+    "models/label_order.json": "8e0f2f852f3dfebfd2b853471d07f51fa264ebbfc670d940943c78d27b89db34",
+    "src/text.py": "983394b64b4a05c7746e849076a2ebd0b0bf1ed4332ab275db08003a7908b609",
+    "models/bert_best.keras": "58dab6bbc8b8dcbd469243825eb59bf77cbe1882ac7c7d941d02e8a91d4bd66a",
+    "models/bert.onnx": "e24c7e73d665b129ad84cf845c12cd9dff541cc0050cdf5948017de67317fc0c",
+    "models/bert_vocab.txt": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+  },
+  "versions": {
+    "local (LR, LSTM)": {
+      "sklearn": "1.9.1",
+      "tensorflow": "2.21.0",
+      "keras": "3.15.1",
+      "keras_hub": "0.32.0",
+      "pandas": "3.0.6"
+    },
+    "colab (BERT)": {
+      "tensorflow": "2.21.0",
+      "keras": "3.13.2",
+      "keras_hub": "0.26.0",
+      "pandas": "2.2.3"
+    }
+  }
+}

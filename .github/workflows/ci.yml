@@ -1,0 +1,23 @@
+# "Did this change break the code?" in minutes, on every push and PR. No secrets, no data, no training:
+# the full pipeline + model gate run via `dvc repro` on a machine with the data (Day 18 decision).
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"          # = local venv (3.13.5)
+          cache: pip
+          cache-dependency-path: requirements-train.txt
+      - run: pip install -r requirements-train.txt   # no TensorFlow
+      - run: pytest -q
+        env:
+          MLFLOW_DISABLED: "1"

@@ -1,3 +1,4 @@
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -14,7 +15,12 @@ def test_config():
     lab = params["labels"]
 
     assert len(labels) == 11
-    assert labels == json.load(open(ROOT / "models/label_order.json"))
+    # label_order.json lives in DVC (not in a fresh clone / CI), but its sha256 is in the committed manifest.
+    # The frozen file = json.dumps(labels, indent=2) written on WINDOWS (CRLF). Build those exact bytes on any OS:
+    # this proves schema == deployed file, byte for byte. (The trainer now writes LF everywhere: newline="\n")
+    manifest = json.loads((ROOT / "models/manifest.json").read_text(encoding="utf-8"))["checksums"]
+    as_written = json.dumps(labels, indent=2).replace("\n", "\r\n").encode("utf-8")
+    assert hashlib.sha256(as_written).hexdigest() == manifest["models/label_order.json"]
     assert len(raw) == 14 and len(set(raw)) == 14
     assert all(r["from"] in raw for r in lab["rename_map"])
     assert all(r["to"] in labels for r in lab["rename_map"])

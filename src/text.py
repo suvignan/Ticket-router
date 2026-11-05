@@ -22,6 +22,11 @@ BERT_PLACEHOLDERS = {
 }
 
 
+def first_350(text: str) -> str:
+    """LSTM/BERT input: keep the first 350 words (Day 11: covers ~90% of complaints in full). Apply AFTER clean_text."""
+    return " ".join(text.split()[:350])
+
+
 def format_for_bert(text: str) -> str:
     """BERT-only: swap each placeholder for a single-WordPiece word. Apply AFTER clean_text."""
     for old, new in BERT_PLACEHOLDERS.items():

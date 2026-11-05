@@ -49,7 +49,8 @@ class ModelTrainer:
                      "label_order": cfg.output_dir / "label_order.json"}
             joblib.dump(vec, paths["tfidf"])
             joblib.dump(model, paths["logreg"])
-            paths["label_order"].write_text(json.dumps(list(model.classes_), indent=2), encoding="utf-8")
+            # newline="\n": same bytes on Windows and Linux (CI/Docker); default write_text writes CRLF on Windows
+            paths["label_order"].write_text(json.dumps(list(model.classes_), indent=2), encoding="utf-8", newline="\n")
             sha = {name: sha256_file(path) for name, path in paths.items()}
             logger.info(f"Saved model -> {cfg.output_dir} | logreg sha256 {sha['logreg'][:12]}")
 

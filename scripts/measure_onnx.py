@@ -9,10 +9,10 @@ import numpy as np, onnxruntime as ort
 from tokenizers import BertWordPieceTokenizer
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from src.text import clean_text, format_for_bert
+from src.text import clean_text, first_350, format_for_bert
 print(f"2. After imports:    {mb():6.1f} MB")
 
-def first_350(t): return " ".join(t.split()[:350])
+
 def softmax(z): e = np.exp(z - z.max(axis=1, keepdims=True)); return e / e.sum(axis=1, keepdims=True)
 
 so = ort.SessionOptions(); so.intra_op_num_threads = 1; so.inter_op_num_threads = 1
