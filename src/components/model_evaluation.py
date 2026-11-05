@@ -92,8 +92,7 @@ class ModelEvaluation:
                       "champion": champion, "macro_f1_diff": diff, "per_class_f1_diff": per_class_diff}
             cfg.report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
             logger.info(f"Gate {'PASSED' if passed else 'FAILED'} | challenger {challenger['macro_f1']:.4f} | diff {diff}")
-            if not passed:
-                raise ValueError(f"Model gate failed: {reasons}")
+            # No raise here: the stage logs the verdict to MLflow FIRST (failures are evidence), then raises
 
             return ModelEvaluationArtifact(
                 gate_passed=passed, reasons=tuple(reasons),

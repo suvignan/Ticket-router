@@ -41,3 +41,34 @@ def test_artifact_json_roundtrip(tmp_path):
                                   per_class_f1_diff={"Prepaid card": -0.031}, report_path=tmp_path / "r.json")
     save_artifact(art, tmp_path / "a.json")
     assert load_artifact(ModelEvaluationArtifact, tmp_path / "a.json") == art     # Path and tuple come back typed
+
+
+def test_slugify_longest_label_is_mlflow_safe():
+    import re
+    from src.entity.config_entity import get_trainer_config
+    from src.utils import slugify
+    labels = get_trainer_config(Path("x")).labels
+    longest = max(labels, key=len)
+    assert "," in longest                                         # guard: the test really contains the bad character
+    assert slugify(longest) == "payday_loan_title_loan_personal_loan_or_advance_loan"
+    assert all(re.fullmatch(r"[a-z0-9_]+", slugify(l)) for l in labels)
+    assert len({slugify(l) for l in labels}) == len(labels)       # no two labels collide into one metric
+
+
+def test_flatten_params():
+    from src.utils import flatten
+    assert flatten({"tfidf": {"min_df": 5, "ngram_range": [1, 1]}, "C": 1.0}, "mt.") == \
+        {"mt.tfidf.min_df": 5, "mt.tfidf.ngram_range": "[1, 1]", "mt.C": 1.0}
+
+
+def test_mlflow_off_switch_and_loud_failure(monkeypatch):
+    import pytest
+    from src.pipeline.stages import stage_06_evaluate as st
+    monkeypatch.setattr(st, "load_dotenv", lambda *a, **k: None)   # don't read the real credentials file
+    for v in ("MLFLOW_TRACKING_URI", "MLFLOW_TRACKING_USERNAME", "MLFLOW_TRACKING_PASSWORD"):
+        monkeypatch.delenv(v, raising=False)
+    monkeypatch.setenv("MLFLOW_DISABLED", "1")
+    assert st.log_to_mlflow(None, None) is None                    # skipped, no error
+    monkeypatch.delenv("MLFLOW_DISABLED")
+    with pytest.raises(RuntimeError, match="credentials missing"):
+        st.log_to_mlflow(None, None)                               # no creds + no flag = fail loudly

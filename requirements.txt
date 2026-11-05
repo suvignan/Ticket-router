@@ -19,6 +19,8 @@ matplotlib==3.11.2
 seaborn==0.13.2
 pytest==9.2.0
 dvc==3.67.1
+mlflow-skinny==3.18.0          # client only: logs to DagsHub's MLflow server
+python-dotenv==1.2.4
 
 # BERT was trained on Colab, not here. To retrain bert_best.keras, reproduce:
 # tensorflow==2.21.0  keras==3.13.2  keras-hub==0.26.0  pandas==2.2.3

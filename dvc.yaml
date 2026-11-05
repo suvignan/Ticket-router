@@ -93,6 +93,7 @@ stages:
     deps:
       - data/splits/val.parquet
       - artifacts/model
+      - artifacts/ingestion.json          # raw_sha256 -> MLflow provenance tag
       - models/tfidf_b.joblib             # the champion (dvc add-ed, so its version is recorded)
       - models/logreg_b.joblib
       - models/label_order.json
@@ -104,6 +105,7 @@ stages:
       - src/utils
       - config/schema.yaml
     params:
+      - model_trainer                     # logged to MLflow
       - model_evaluation
     outs:
       - artifacts/evaluation.json

@@ -1,6 +1,7 @@
 import dataclasses
 import hashlib
 import json
+import re
 import typing
 from pathlib import Path
 
@@ -38,3 +39,20 @@ def load_artifact(cls, path):
         elif typing.get_origin(f.type) is tuple:
             data[f.name] = tuple(data[f.name])
     return cls(**data)
+
+
+def slugify(name: str) -> str:
+    """MLflow metric names allow only letters, digits, _ - . space /. Labels have commas: lowercase, rest -> _."""
+    return re.sub(r"[^a-z0-9_]+", "_", name.lower()).strip("_")
+
+
+def flatten(d: dict, prefix: str = "") -> dict:
+    """{'tfidf': {'min_df': 5}} -> {'tfidf.min_df': 5}. MLflow params must be flat; lists become strings."""
+    out = {}
+    for k, v in d.items():
+        key = f"{prefix}{k}"
+        if isinstance(v, dict):
+            out.update(flatten(v, key + "."))
+        else:
+            out[key] = str(v) if isinstance(v, (list, tuple)) else v
+    return out

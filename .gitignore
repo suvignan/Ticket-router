@@ -8,7 +8,9 @@ data/**
 # metrics (cache: false) are committed to git
 !data/processed/*_report.json
 
+# the "!<dir>/**/" line is needed: DVC skips any folder git ignores, so without it DVC never sees the .dvc files inside
 models/**
+!models/**/
 !models/*.dvc
 predictions/
 
