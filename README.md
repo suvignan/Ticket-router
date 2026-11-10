@@ -2,7 +2,27 @@
 
 # Ticket Router
 
-An **11-class complaint router**: it reads a customer complaint, sends it to the right product team, and sends uncertain ones to a human. Trained on the public **CFPB Consumer Complaint** dataset (2.9M rows), which stands in for a bank's support tickets. **Live:** https://ticket-router-hjiq.onrender.com (contract: [docs/api.md](docs/api.md)).
+An **11-class complaint router**: it reads a customer complaint, sends it to the right product team, and sends uncertain ones to a human. Trained on the public **CFPB Consumer Complaint** dataset (2.9M rows), which stands in for a bank's support tickets.
+
+### Try it live
+
+Hosted on **[Render](https://render.com)** (free tier), deployed from **GitHub Actions** as a Docker image.
+
+| | Link |
+|---|---|
+| **Interactive API docs (Swagger)**: open `POST /predict` → *Try it out* → paste a complaint | **[ticket-router-hjiq.onrender.com/docs](https://ticket-router-hjiq.onrender.com/docs)** |
+| Alternative docs (ReDoc) | [/redoc](https://ticket-router-hjiq.onrender.com/redoc) |
+| What's running: model, git commit, sha256 of every file | [/version](https://ticket-router-hjiq.onrender.com/version) |
+| Health check | [/health](https://ticket-router-hjiq.onrender.com/health) |
+| API contract (behaviour decided before the code) | [docs/api.md](docs/api.md) |
+
+> The free instance sleeps after 15 minutes idle, so the **first request can take ~30–60 s** while it wakes up. After that it answers in milliseconds.
+
+```bash
+curl -X POST https://ticket-router-hjiq.onrender.com/predict \
+  -H "Content-Type: application/json" \
+  -d '{"text": "I was charged twice on my credit card and the bank refuses to refund the duplicate charge."}'
+```
 
 ## The verdict
 
@@ -56,41 +76,49 @@ BERT beats LR by **+0.021 to +0.034 macro-F1** (95% paired bootstrap CI, dedupli
 
 ```mermaid
 flowchart LR
-    subgraph TRAIN["Training pipeline · dvc repro"]
+    subgraph TRAIN["Training pipeline: dvc repro"]
         direction TB
-        RAW[("CFPB.csv<br/>2.9M rows")] --> ING["ingest<br/>junk rules · date cutoff"]
-        ING --> VAL["validate<br/>8 schema checks"]
-        VAL --> LAB["labels<br/>CFPB renames → 11 teams"]
-        LAB --> SPL["split<br/>by date: 2023-24 / Jan-Feb / Mar-May"]
-        SPL --> TRN["train<br/>TF-IDF + LR"]
-        TRN --> GATE{"gate<br/>vs champion<br/>on validation"}
+        RAW[("CFPB.csv<br/>2.9M rows")]
+        ING["ingest<br/>junk rules, date cutoff"]
+        VAL["validate<br/>8 schema checks"]
+        LAB["labels<br/>CFPB renames to 11 teams"]
+        SPL["split by date<br/>2023-24 / Jan-Feb / Mar-May"]
+        TRN["train<br/>TF-IDF + LR"]
+        GATE{"gate vs champion<br/>on validation"}
+        RAW --> ING --> VAL --> LAB --> SPL --> TRN --> GATE
     end
 
     subgraph HUB["DagsHub"]
         DVC[("DVC remote<br/>data + models")]
-        MLF[("MLflow<br/>params · metrics · tags")]
+        MLF[("MLflow<br/>params, metrics, tags")]
     end
-
-    GATE -- "pass or fail:<br/>every run logged" --> MLF
-    GATE -- "pass → manual promote:<br/>models/ + manifest.json (sha256)" --> DVC
 
     subgraph GHA["GitHub Actions"]
         direction TB
-        PUSH(["git push"]) --> CI["CI · no secrets<br/>pytest: fixture pipeline · goldens · API"]
-        CI -- "green on main" --> CD["CD<br/>dvc pull → verify sha256 → docker build"]
+        PUSH(["git push"])
+        CI["CI, no secrets<br/>pytest: fixture pipeline, goldens, API"]
+        CD["CD<br/>dvc pull, verify sha256, docker build"]
+        PUSH --> CI
+        CI -->|"green on main"| CD
     end
 
-    DVC -- "model files" --> CD
-    CD -- "image tagged with commit SHA" --> GHCR[("ghcr.io")]
+    GHCR[("ghcr.io<br/>image per commit")]
 
-    subgraph RENDER["Render · free tier"]
+    subgraph RENDER["Render free tier"]
         API["FastAPI + LR<br/>sha256 re-verified at startup"]
     end
 
-    GHCR -- "deploy that exact image" --> API
-    CLIENT(["client"]) -- "POST /predict" --> API
-    API -- "team or review" --> CLIENT
-    API -. "after the response:<br/>hash + length, no text" .-> NEON[("Neon Postgres<br/>predictions")]
+    CLIENT(["client"])
+    NEON[("Neon Postgres<br/>predictions")]
+
+    GATE -->|"every run, pass or fail"| MLF
+    GATE -->|"pass: manual promote + manifest sha256"| DVC
+    DVC -->|"model files"| CD
+    CD -->|"image tagged with commit SHA"| GHCR
+    GHCR -->|"deploy that exact image"| API
+    CLIENT -->|"POST /predict"| API
+    API -->|"team or review"| CLIENT
+    API -.->|"after the response: hash + length, no text"| NEON
 ```
 
 **Three design choices this diagram encodes:**
@@ -102,17 +130,34 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    REQ["POST /predict · {text}"] --> BIG{"over 35,000<br/>characters?"}
-    BIG -- yes --> E413["413<br/>only the length is touched — never hashed or stored"]
-    BIG -- no --> JUNK{"no content?<br/>same junk rules as ingest"}
-    JUNK -- yes --> RNC["review · no_content<br/>model NOT called"]
-    JUNK -- no --> SHORT{"under 10 characters<br/>after clean_text?"}
-    SHORT -- yes --> RTS["review · too_short<br/>model NOT called"]
-    SHORT -- no --> MODEL["model → 11 probabilities"]
-    MODEL --> CONF{"top probability<br/>≥ threshold?<br/>LR 0.60 · BERT 0.83"}
-    CONF -- yes --> AUTO["auto_route → team"]
-    CONF -- no --> RLC["review · low_confidence<br/>top-2 teams as suggestions"]
-    E413 & RNC & RTS & AUTO & RLC -.-> LOG[("one log line + one Neon row<br/>request_id · sha256 · length · decision · latency")]
+    REQ["POST /predict with JSON text"]
+    BIG{"over 35,000<br/>characters?"}
+    E413["413<br/>only the length is touched, never hashed or stored"]
+    JUNK{"no content?<br/>same junk rules as ingest"}
+    RNC["review: no_content<br/>model NOT called"]
+    SHORT{"under 10 characters<br/>after clean_text?"}
+    RTS["review: too_short<br/>model NOT called"]
+    MODEL["model gives 11 probabilities"]
+    CONF{"top probability >= threshold?<br/>LR 0.60, BERT 0.83"}
+    AUTO["auto_route to the team"]
+    RLC["review: low_confidence<br/>top-2 teams as suggestions"]
+    LOG[("one log line + one Neon row<br/>request_id, sha256, length, decision, latency")]
+
+    REQ --> BIG
+    BIG -->|"yes"| E413
+    BIG -->|"no"| JUNK
+    JUNK -->|"yes"| RNC
+    JUNK -->|"no"| SHORT
+    SHORT -->|"yes"| RTS
+    SHORT -->|"no"| MODEL
+    MODEL --> CONF
+    CONF -->|"yes"| AUTO
+    CONF -->|"no"| RLC
+    E413 -.-> LOG
+    RNC -.-> LOG
+    RTS -.-> LOG
+    AUTO -.-> LOG
+    RLC -.-> LOG
 ```
 
 Thresholds were chosen **on validation** so both models send roughly the same share of tickets (~14.5%) to staff. If the database is down, the insert fails quietly (logged), and **the ticket is still routed** — a lost audit row is recoverable, a routing outage isn't.
@@ -193,6 +238,3 @@ The `evaluate` stage is a **gate**: the new model must reach macro-F1 ≥ 0.65, 
 | 08 | `08_test.ipynb` | One-time final test of all models + decision record |
 | – | `memory_check.ipynb` | Peak memory check for serving |
 
-## Incident log
-
-- **2026-11-05:** a DagsHub access token was exposed (shared via an editor selection in a chat tool). It was revoked and replaced. Credentials now live only in git-ignored `.dvc/config.local` and `.env` locally, and in GitHub Actions secrets / Render environment variables in the cloud.
