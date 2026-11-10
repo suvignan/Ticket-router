@@ -1,0 +1,13 @@
+# Build context = only what the Dockerfile COPYs (keeps .env, data/, nlp/ venv and 2 GB of CSV out of the context)
+*
+!requirements-serve.txt
+!src/
+!app/
+!params.yaml
+!models/manifest.json
+!models/label_order.json
+!models/tfidf_b.joblib
+!models/logreg_b.joblib
+!models/bert.onnx
+!models/bert_vocab.txt
+**/__pycache__

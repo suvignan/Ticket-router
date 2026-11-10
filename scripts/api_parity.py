@@ -1,5 +1,6 @@
 """The API must equal the offline path. Starts uvicorn for ONE model, sends 20 validation complaints + edge cases.
-    python scripts/api_parity.py lr|bert
+    python scripts/api_parity.py lr|bert                  # starts its own uvicorn
+    python scripts/api_parity.py bert http://host:port   # an ALREADY running server (Docker, Render)
 Offline reference: LR = batch TF-IDF + logreg on the same rows; BERT = predictions/bert_val_proba.npy (batch ONNX job)."""
 import json
 import os
@@ -21,7 +22,7 @@ sys.path.insert(0, str(ROOT))
 from src.text import clean_text
 
 MODEL = sys.argv[1]
-URL = "http://127.0.0.1:8000"
+URL = sys.argv[2].rstrip("/") if len(sys.argv) > 2 else "http://127.0.0.1:8000"
 
 
 def call(path, body=None):
@@ -51,8 +52,9 @@ tmp = Path(tempfile.mkdtemp()) / "params.yaml"
 tmp.write_text(yaml.safe_dump(params), encoding="utf-8")
 env = {**os.environ, "TICKET_ROUTER_PARAMS": str(tmp), "GIT_COMMIT": subprocess.check_output(
     ["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, text=True).strip()}
-server = subprocess.Popen([sys.executable, "-m", "uvicorn", "app.main:app", "--port", "8000", "--log-level", "warning"],
-                          cwd=ROOT, env=env, stdout=subprocess.DEVNULL)
+server = None if len(sys.argv) > 2 else subprocess.Popen(
+    [sys.executable, "-m", "uvicorn", "app.main:app", "--port", "8000", "--log-level", "warning"],
+    cwd=ROOT, env=env, stdout=subprocess.DEVNULL)
 try:
     for _ in range(120):
         try:
@@ -62,6 +64,7 @@ try:
             time.sleep(1)
     else:
         raise SystemExit("server did not start")
+    assert call("/version")[1]["model"] == MODEL, "server runs a different model than the one being checked"
 
     ok = 0
     for i, text in enumerate(texts):
@@ -82,4 +85,5 @@ try:
     print("/version:", json.dumps(call("/version")[1], indent=2))
     sys.exit(0 if ok == 20 else 1)
 finally:
-    server.terminate()
+    if server:
+        server.terminate()

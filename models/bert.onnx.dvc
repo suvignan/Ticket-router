@@ -1,0 +1,5 @@
+outs:
+- md5: 3584ef188a4e529618ce39dfb1ec7da3
+  size: 127813625
+  hash: md5
+  path: bert.onnx

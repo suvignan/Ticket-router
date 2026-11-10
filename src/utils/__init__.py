@@ -23,6 +23,19 @@ def sha256_file(path, chunk=1024 * 1024) -> str:
     return h.hexdigest()
 
 
+
+def verify_checksums(paths, manifest, root) -> dict:
+    """sha256 of every path (relative to root) == models/manifest.json, else raise. ONE check, used by the API at
+    startup (refuses to start) and by CD before `docker build` (refuses to build). Returns {path: sha256}."""
+    expected = json.loads(Path(manifest).read_text(encoding="utf-8"))["checksums"]
+    checksums = {}
+    for path in paths:
+        actual = sha256_file(Path(root) / path)
+        if actual != expected[path]:
+            raise RuntimeError(f"{path}: sha256 {actual[:12]} != manifest {expected[path][:12]}. Refusing to start.")
+        checksums[path] = actual
+    return checksums
+
 def save_artifact(artifact, path) -> None:
     """Artifact dataclass -> JSON (DVC stages talk only through files). default=str turns Path into str."""
     path = Path(path)

@@ -1,0 +1,65 @@
+# CD: only code that already PASSED CI on main gets an image. Secrets live here, never in CI.
+# dvc pull -> verify checksums -> build (models baked in) -> push to GHCR -> tell Render to deploy THAT image.
+# Repo secrets: DAGSHUB_TOKEN (DVC read), RENDER_DEPLOY_HOOK (Render > service > Settings > Deploy Hook).
+name: CD
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write                     # push to ghcr.io with the automatic GITHUB_TOKEN
+
+jobs:
+  build-and-push:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}     # the exact commit CI tested
+      HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}                          # empty until the Render service exists
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Pull model files from DagsHub
+        run: |
+          pip install -q dvc==3.67.1
+          dvc remote modify origin --local auth basic
+          dvc remote modify origin --local user srisuvignan
+          dvc remote modify origin --local password "$DAGSHUB_TOKEN"
+          dvc pull models/tfidf_b.joblib.dvc models/logreg_b.joblib.dvc models/label_order.json.dvc \
+                   models/bert.onnx.dvc models/bert_vocab.txt.dvc
+        env:
+          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+
+      - name: Verify checksums before building (same check the app runs at startup)
+        run: |
+          pip install -q PyYAML==6.0.3
+          python scripts/verify_manifest.py
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/suvignan/ticket-router:${{ env.SHA }}
+          build-args: GIT_COMMIT=${{ env.SHA }}
+
+      - name: Deploy this exact image on Render
+        if: env.HOOK != ''
+        run: curl -fsS -G -X POST "$HOOK" --data-urlencode "imgURL=ghcr.io/suvignan/ticket-router:$SHA" > /dev/null

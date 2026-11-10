@@ -10,7 +10,7 @@ from tokenizers import BertWordPieceTokenizer
 
 from src.constants import ROOT
 from src.text import clean_text, first_350, format_for_bert
-from src.utils import sha256_file
+from src.utils import verify_checksums
 
 BERT_VOCAB = ROOT / "models" / "bert_vocab.txt"
 MANIFEST = ROOT / "models" / "manifest.json"
@@ -80,13 +80,7 @@ def load_bundle(cfg: dict, manifest: Path = MANIFEST, root: Path = ROOT):
     on a mismatch it raises and the service refuses to start. Better no service than the wrong model.
     Tests pass their own manifest + root (a fixture-trained model is the test's own champion)."""
     files = cfg["files"][cfg["model"]]
-    expected = json.loads(manifest.read_text(encoding="utf-8"))["checksums"]
-    checksums = {}
-    for path in files.values():
-        actual = sha256_file(root / path)
-        if actual != expected[path]:
-            raise RuntimeError(f"{path}: sha256 {actual[:12]} != manifest {expected[path][:12]}. Refusing to start.")
-        checksums[path] = actual
+    checksums = verify_checksums(files.values(), manifest, root)
     cls = BUNDLES[cfg["model"]]
     bundle = cls({key: root / path for key, path in files.items()})
     bundle.name, bundle.checksums, bundle.model_sha256 = cfg["model"], checksums, checksums[files[cls.MAIN]]
