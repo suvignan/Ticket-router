@@ -5,6 +5,7 @@ from src.entity.config_entity import DataIngestionConfig
 from src.entity.artifact_entity import DataIngestionArtifact
 from src.exception import TicketRouterException
 from src.logger import logger
+from src.text import is_no_content
 from src.utils import sha256_file
 
 
@@ -31,11 +32,10 @@ class DataIngestion:
             # 3. Junk filter: checks the RAW narrative, BEFORE clean_text
             #    (after cleaning, "XXXX" becomes "redactedinfo" and rule B would stop matching)
 
-            text = df[cfg.text_column].str.strip()
-            is_nan = text.isna()
-            is_redacted_only = text.str.replace(cfg.redaction_only_chars,"",regex=True).str.len().eq(0)
-            is_attachment = (text.str.len().le(cfg.attachment_max_len) & text.str.contains(cfg.attachment_phrase,regex=False,na=False,case=False))
-            junk = is_nan | is_redacted_only | is_attachment
+            #    Same function the API calls (src/text.py): one definition, so they can't drift
+            rules = {"redaction_only_chars": cfg.redaction_only_chars, "attachment_phrase": cfg.attachment_phrase,
+                     "attachment_max_len": cfg.attachment_max_len}
+            junk = df[cfg.text_column].map(lambda t: is_no_content(t, rules)).astype(bool)
             n_junk_removed = int(junk.sum())
             df = df[~junk].copy()
             logger.info(f"Junk Removed: {n_junk_removed:,} | rows left: {len(df):,}")

@@ -15,6 +15,17 @@ def clean_text(text: str) -> str:
     text = re.sub(r"\s+", " ", text)
     return text.strip()
 
+
+def is_no_content(raw_text, rules: dict) -> bool:
+    """params.yaml junk_rules, on the RAW text. ONE definition: ingestion drops these rows, the API sends them to review."""
+    if not isinstance(raw_text, str):
+        return True
+    text = raw_text.strip()
+    if re.sub(rules["redaction_only_chars"], "", text) == "":          # empty, or only X / slashes / spaces
+        return True
+    return len(text) <= rules["attachment_max_len"] and rules["attachment_phrase"].upper() in text.upper()
+
+
 BERT_PLACEHOLDERS = {
     "redactedinfo": "masked",
     "redacteddate": "concealed",

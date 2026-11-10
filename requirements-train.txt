@@ -6,3 +6,4 @@ dvc==3.67.1
 mlflow-skinny==3.18.0  # client only: logs to DagsHub's MLflow server
 python-dotenv==1.2.4
 pytest==9.2.0
+httpx==0.28.1          # FastAPI TestClient (tests/test_api.py)

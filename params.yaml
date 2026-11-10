@@ -75,3 +75,20 @@ model_evaluation:               # the gate: challenger (new pipeline model) vs c
     label_order_sha256: 8e0f2f852f3dfebfd2b853471d07f51fa264ebbfc670d940943c78d27b89db34
     recorded_val_macro_f1: 0.695574   # measured 2026-11-04 on data/splits/val.parquet; the canary
   max_champion_drift: 0.0001    # frozen champion's score must not move; more = "environment changed" (data / clean_text / library)
+
+serving:                         # read by the API (app/main.py); no DVC stage uses it, so changing it re-runs nothing
+  model: lr                      # lr | bert: ONE model per deployment (BERT alone needs ~0.5 GB RAM)
+  max_chars: 35000               # raw text above this -> 413 (protects the service; longest real complaint 32,962)
+  min_chars: 10                  # after clean_text, below this -> review "too_short", model not called
+  thresholds:                    # confidence < threshold -> review. Per model: their probabilities are calibrated differently
+    lr: 0.6                      # Day 8, validation
+    bert: 0.83                   # Day 19, validation (scripts/bert_threshold.py): matches LR's 14.6% review share
+  files:                         # each path is also its key in models/manifest.json: sha256-checked BEFORE loading
+    lr:
+      tfidf: models/tfidf_b.joblib
+      logreg: models/logreg_b.joblib
+      label_order: models/label_order.json
+    bert:
+      onnx: models/bert.onnx
+      vocab: models/bert_vocab.txt
+      label_order: models/label_order.json

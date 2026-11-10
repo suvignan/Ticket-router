@@ -1,5 +1,5 @@
 # Serving: the Docker image on Render. No pandas: serving path is re + numpy + sparse TF-IDF + ONNX
-# (fastapi + uvicorn come on Day 19)
+# The API (app/main.py): FastAPI + uvicorn
 numpy==2.5.4
 scipy==1.18.1          # TF-IDF transform returns a SciPy sparse matrix
 scikit-learn==1.9.1    # joblib models only load reliably with the same version
@@ -7,3 +7,7 @@ joblib==1.6.0
 onnxruntime==1.31.1
 tokenizers==0.23.3
 PyYAML==6.0.3
+fastapi==0.162.0
+uvicorn==0.54.0
+pydantic==2.14.2
+psycopg2-binary==2.9.13 # prediction rows -> Neon (Postgres); wheel includes libpq, no compiler in the image

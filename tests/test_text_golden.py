@@ -10,8 +10,8 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests" / "fixtures"
 sys.path.insert(0, str(ROOT))
 from src.serving import encode_for_bert
-from src.text import clean_text, first_350, format_for_bert
-from src.utils import sha256_file
+from src.text import clean_text, first_350, format_for_bert, is_no_content
+from src.utils import read_yaml, sha256_file
 
 CASES = json.loads((FIXTURES / "golden_text.json").read_text(encoding="utf-8"))
 BERT_ROWS = json.loads((FIXTURES / "bert_token_golden.json").read_text(encoding="utf-8"))
@@ -44,3 +44,26 @@ def test_bert_tokens_match_keras_hub():
         if ids[0].tolist() != r["keras_hub_ids"] or mask.sum() != ids.shape[1]:
             wrong.append(r["row"])
     assert not wrong, f"token IDs differ from KerasHub on reference rows {wrong}"
+
+
+# is_no_content: ONE function for ingestion (drops the row) and the API (review, model not called)
+JUNK_RULES = read_yaml(ROOT / "params.yaml")["junk_rules"]
+NO_CONTENT = [                                    # (raw text, is junk, why)
+    (float("nan"), True, "NaN narrative"),
+    (None, True, "None"),
+    ("", True, "empty"),
+    ("   \n\t ", True, "whitespace only"),
+    ("XXXX", True, "redaction only"),
+    ("XX/XX/XXXX XXXX", True, "redacted date + name only"),
+    ("See attached.", True, "short attachment note"),
+    ("  PLEASE SEE ATTACHMENT  ", True, "case-insensitive, stripped"),
+    ("see attached document regarding my mortgage", False, "attachment phrase but long enough (> 30)"),
+    ("XXXX charged me twice", False, "redaction + real words"),
+    ("paid debt", False, "shortest real narrative: content (too_short is a different rule)"),
+    ("x", False, "lowercase x is a letter, not a redaction"),
+]
+
+
+@pytest.mark.parametrize("raw, junk, why", NO_CONTENT, ids=[c[2] for c in NO_CONTENT])
+def test_is_no_content(raw, junk, why):
+    assert is_no_content(raw, JUNK_RULES) is junk

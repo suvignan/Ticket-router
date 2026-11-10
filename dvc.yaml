@@ -8,6 +8,7 @@ stages:
       - data/raw/CFPB.csv
       - src/pipeline/stages/stage_01_ingest.py
       - src/components/data_ingestion.py
+      - src/text.py                  # is_no_content (junk rules, shared with the API)
       - src/entity
       - src/constants
       - src/utils

@@ -32,7 +32,7 @@ CHAMPION = get_evaluation_config(Path("v"), Path("t"), Path("l")).champion
 
 #           stage       must be in deps                                                   must be in outs (or metrics)
 EXPECTED = {
-    "ingest":   ([C.RAW_CSV, C.SCHEMA_FILE],                                               [C.INGESTED_PARQUET, A / "ingestion.json"]),
+    "ingest":   ([C.RAW_CSV, C.SCHEMA_FILE, C.ROOT / "src" / "text.py"],                   [C.INGESTED_PARQUET, A / "ingestion.json"]),
     "validate": ([C.INGESTED_PARQUET],                                                     [A / "validation.json", C.VALIDATION_REPORT]),
     "labels":   ([C.INGESTED_PARQUET, A / "validation.json"],                              [C.LABELED_PARQUET, A / "labels.json"]),
     "split":    ([C.LABELED_PARQUET],                                                      [C.SPLIT_DIR / f"{s}.parquet" for s in ("train", "val", "test", "test_dedup")] + [A / "split.json"]),
