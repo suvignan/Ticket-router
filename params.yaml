@@ -77,7 +77,7 @@ model_evaluation:               # the gate: challenger (new pipeline model) vs c
   max_champion_drift: 0.0001    # frozen champion's score must not move; more = "environment changed" (data / clean_text / library)
 
 serving:                         # read by the API (app/main.py); no DVC stage uses it, so changing it re-runs nothing
-  model: lr                      # lr | bert: ONE model per deployment (BERT alone needs ~0.5 GB RAM)
+  model: bert                    # lr | bert: ONE model per deployment (BERT alone needs ~0.5 GB RAM)
   max_chars: 35000               # raw text above this -> 413 (protects the service; longest real complaint 32,962)
   min_chars: 10                  # after clean_text, below this -> review "too_short", model not called
   thresholds:                    # confidence < threshold -> review. Per model: their probabilities are calibrated differently
