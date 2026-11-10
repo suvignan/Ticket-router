@@ -13,12 +13,12 @@ stages:
       size: 1876440324
     - path: src/components/data_ingestion.py
       hash: md5
-      md5: d1720097a73b1c437894ac10b0edd705
-      size: 3584
+      md5: 98a046db0895e658f5a642448fc67da2
+      size: 3592
     - path: src/constants
       hash: md5
-      md5: 38ff2560e8eb00586db22ff2b1372e8b.dir
-      size: 1913
+      md5: 759a8d32edb518fe58ceaa3762fce5b5.dir
+      size: 2549
       nfiles: 2
     - path: src/entity
       hash: md5
@@ -29,10 +29,14 @@ stages:
       hash: md5
       md5: 87aed50de1e9a6eac50d8994a0f8422e
       size: 500
+    - path: src/text.py
+      hash: md5
+      md5: 905a2a5a993563bbaa5564eb4099e979
+      size: 2304
     - path: src/utils
       hash: md5
-      md5: c833f22724a1347b91ef1084eccbb466.dir
-      size: 5957
+      md5: 42660ee20c48e7966eb72f42641b2198.dir
+      size: 7508
       nfiles: 2
     params:
       params.yaml:
@@ -69,8 +73,8 @@ stages:
       size: 4401
     - path: src/constants
       hash: md5
-      md5: 38ff2560e8eb00586db22ff2b1372e8b.dir
-      size: 1913
+      md5: 759a8d32edb518fe58ceaa3762fce5b5.dir
+      size: 2549
       nfiles: 2
     - path: src/entity
       hash: md5
@@ -83,8 +87,8 @@ stages:
       size: 542
     - path: src/utils
       hash: md5
-      md5: c833f22724a1347b91ef1084eccbb466.dir
-      size: 5957
+      md5: 42660ee20c48e7966eb72f42641b2198.dir
+      size: 7508
       nfiles: 2
     outs:
     - path: artifacts/validation.json
@@ -116,8 +120,8 @@ stages:
       size: 3703
     - path: src/constants
       hash: md5
-      md5: 38ff2560e8eb00586db22ff2b1372e8b.dir
-      size: 1913
+      md5: 759a8d32edb518fe58ceaa3762fce5b5.dir
+      size: 2549
       nfiles: 2
     - path: src/entity
       hash: md5
@@ -130,8 +134,8 @@ stages:
       size: 572
     - path: src/utils
       hash: md5
-      md5: c833f22724a1347b91ef1084eccbb466.dir
-      size: 5957
+      md5: 42660ee20c48e7966eb72f42641b2198.dir
+      size: 7508
       nfiles: 2
     params:
       params.yaml:
@@ -185,8 +189,8 @@ stages:
       size: 4193
     - path: src/constants
       hash: md5
-      md5: 38ff2560e8eb00586db22ff2b1372e8b.dir
-      size: 1913
+      md5: 759a8d32edb518fe58ceaa3762fce5b5.dir
+      size: 2549
       nfiles: 2
     - path: src/entity
       hash: md5
@@ -199,8 +203,8 @@ stages:
       size: 519
     - path: src/utils
       hash: md5
-      md5: c833f22724a1347b91ef1084eccbb466.dir
-      size: 5957
+      md5: 42660ee20c48e7966eb72f42641b2198.dir
+      size: 7508
       nfiles: 2
     params:
       params.yaml:
@@ -245,12 +249,12 @@ stages:
       size: 213576046
     - path: src/components/model_trainer.py
       hash: md5
-      md5: ea1d46129b93dde77e6c27821e58ee19
-      size: 3090
+      md5: e6f9f82ce37c2cbafaeb14aaaae128ac
+      size: 3156
     - path: src/constants
       hash: md5
-      md5: 38ff2560e8eb00586db22ff2b1372e8b.dir
-      size: 1913
+      md5: 759a8d32edb518fe58ceaa3762fce5b5.dir
+      size: 2549
       nfiles: 2
     - path: src/entity
       hash: md5
@@ -263,12 +267,12 @@ stages:
       size: 522
     - path: src/text.py
       hash: md5
-      md5: 751cb16ef23b64a1326fd720e3c2d438
-      size: 1608
+      md5: 905a2a5a993563bbaa5564eb4099e979
+      size: 2304
     - path: src/utils
       hash: md5
-      md5: c833f22724a1347b91ef1084eccbb466.dir
-      size: 5957
+      md5: 42660ee20c48e7966eb72f42641b2198.dir
+      size: 7508
       nfiles: 2
     params:
       params.yaml:
@@ -286,12 +290,12 @@ stages:
     outs:
     - path: artifacts/model
       hash: md5
-      md5: ae78c55ebc37f56bdcb82904d7941eb3.dir
-      size: 2711324
+      md5: 1c82ddd809d229101b8a6c4ec34980f6.dir
+      size: 2711312
       nfiles: 3
     - path: artifacts/train.json
       hash: md5
-      md5: 6d890aef9477b9abde5ac79a899b75f4
+      md5: 56373d116501d9ae2d1046649925f513
       size: 824
   evaluate:
     cmd: python -m src.pipeline.stages.stage_06_evaluate
@@ -302,8 +306,8 @@ stages:
       size: 356
     - path: artifacts/model
       hash: md5
-      md5: ae78c55ebc37f56bdcb82904d7941eb3.dir
-      size: 2711324
+      md5: 1c82ddd809d229101b8a6c4ec34980f6.dir
+      size: 2711312
       nfiles: 3
     - path: config/schema.yaml
       hash: md5
@@ -331,8 +335,8 @@ stages:
       size: 5555
     - path: src/constants
       hash: md5
-      md5: 38ff2560e8eb00586db22ff2b1372e8b.dir
-      size: 1913
+      md5: 759a8d32edb518fe58ceaa3762fce5b5.dir
+      size: 2549
       nfiles: 2
     - path: src/entity
       hash: md5
@@ -345,12 +349,12 @@ stages:
       size: 4062
     - path: src/text.py
       hash: md5
-      md5: 751cb16ef23b64a1326fd720e3c2d438
-      size: 1608
+      md5: 905a2a5a993563bbaa5564eb4099e979
+      size: 2304
     - path: src/utils
       hash: md5
-      md5: c833f22724a1347b91ef1084eccbb466.dir
-      size: 5957
+      md5: 42660ee20c48e7966eb72f42641b2198.dir
+      size: 7508
       nfiles: 2
     params:
       params.yaml:
